@@ -36,6 +36,79 @@ enum OpcionUsuario {
     SALIR_PROGRAMA
 } typedef OpcionUsuario;
 
+typedef Publicacion Type;
+
+typedef struct Node_Type {
+  Type data;
+  struct Node_Type* next; // Point the next node.
+} Node;
+
+typedef struct LinkedList_Type {
+  Node* first;
+  Node* last;
+} LinkedList;
+
+LinkedList* linked_list_constructor();
+void linked_list_destroyer(LinkedList* this);
+bool linked_list_insert(LinkedList* this, Type value);
+bool linked_list_is_empty(LinkedList* this);
+
+static Node* new_node(Type value) {
+    Node* new = (Node*) malloc(sizeof(Node));
+    if(new) {
+        new->data = value;
+        new->next = NULL;
+    }
+
+    return new;
+}
+
+static void delete_node(Node* node) {
+    if (node) free(node); 
+}
+
+LinkedList* linked_list_constructor() {
+  LinkedList* this = (LinkedList*) malloc(sizeof(LinkedList));
+  if( this ) {
+    this->first = NULL;
+    this->last = NULL;
+  }
+  
+  return this;
+}
+
+void linked_list_destroyer(LinkedList* this) {
+  if( this ) {
+    while( this->first ) {
+      Node* tmp=this->first->next;
+      delete_node(this->first);
+      this->first=tmp;
+    }
+  }
+
+  free(this);
+}
+
+
+bool linked_list_insert(LinkedList* this, Type value) {
+  Node* node = new_node(value);
+  if( !node ) return false;
+
+  if ( linked_list_is_empty(this) ) {
+    this->first = node;
+    this->last = node;
+  } else {
+    this->last->next = node;
+    this->last = node;
+  }
+  return false;
+}
+
+bool linked_list_is_empty(LinkedList* this) {
+    if( this->first == NULL ) return true;
+    return false;
+}
+
 void mostrar_menu_principal();
 void mostrar_menu_usuario();
 OpcionPrincipal opcion_menu_principal(int opcion);
@@ -53,7 +126,7 @@ bool crear_almacenamiento_de_usuario(Usuario usuario);
 bool buscar_usuario_en_archivo(Credenciales credenciales);
 bool buscar_nombre_usuario_en_archivo(char nombre_usuario[]);
 bool escribir_publicacion_en_archivo(char nombre_usuario[], Publicacion publicacion);
-Publicacion* leer_publicaciones_en_archivo(char nombre_usuario[]);
+LinkedList* leer_publicaciones_en_archivo(char nombre_usuario[]);
 bool eliminar_publicacion_en_archivo(char nombre_usuario[], int id); 
 
 bool crear_cuenta();
@@ -266,7 +339,7 @@ bool escribir_publicacion_en_archivo(char nombre_usuario[], Publicacion publicac
     return true;
 }
 
-Publicacion* leer_publicaciones_en_archivo(char nombre_usuario[]) {
+LinkedList* leer_publicaciones_en_archivo(char nombre_usuario[]) {
     char path[200] = "";
     strcat(path, "usuarios/");
     strcat(path, nombre_usuario);
@@ -278,14 +351,14 @@ Publicacion* leer_publicaciones_en_archivo(char nombre_usuario[]) {
         return NULL;
     }
 
-    Publicacion* publicaciones;
+    LinkedList* publicaciones = linked_list_constructor();;
     Publicacion publicacion_it;
     while (fread(&publicacion_it, sizeof(publicacion_it), 1, archivo)) {
-        //TODO: Append in array build with dynamic memory 
+        linked_list_insert(publicaciones, publicacion_it);
     }  
 
     fclose(archivo);
-    return NULL;
+    return publicaciones;
 }
 
 bool eliminar_publicacion_en_archivo(char nombre_usuario[], int id) {
