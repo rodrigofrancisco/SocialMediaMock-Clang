@@ -109,6 +109,15 @@ bool linked_list_is_empty(LinkedList* this) {
     return false;
 }
 
+void linked_list_peeker(LinkedList* this) {
+    if( linked_list_is_empty(this) ) return;
+    Node* iterator = this->first;
+    while( iterator != NULL ) {
+        printf("publicacion: %s", iterator->data.texto);
+        iterator = iterator->next;
+    }
+}
+
 void mostrar_menu_principal();
 void mostrar_menu_usuario();
 OpcionPrincipal opcion_menu_principal(int opcion);
@@ -133,6 +142,7 @@ bool crear_cuenta();
 char* iniciar_sesion();
 void manejar_sesion(char* usuario);
 bool crear_publicacion(char nombre_usuario[]);
+void obtener_publicaciones_usuario(char nombre_usuario[]);
 
 void mostrar_menu_principal() {
     printf("\nBIENVENIDO A FWIFFER\n\n");
@@ -199,7 +209,7 @@ OpcionPrincipal manejar_opciones_menu(OpcionPrincipal opcion) {
 OpcionUsuario manejar_opciones_menu_usuario(OpcionUsuario opcion, char usuario[]) {
     switch (opcion) {
     case VER_PUBLICACION:
-        printf("Ver publicz");
+        obtener_publicaciones_usuario(usuario);
         break;
     case CREAR_PUBLICACION:
         if( crear_publicacion(usuario)) {
@@ -423,6 +433,11 @@ void manejar_sesion(char* usuario) {
 bool crear_publicacion(char nombre_usuario[]) {
     Publicacion publicacion = obtener_publicacion();
     return escribir_publicacion_en_archivo(nombre_usuario, publicacion);
+}
+
+void obtener_publicaciones_usuario(char nombre_usuario[]) {
+    LinkedList* publicaciones = leer_publicaciones_en_archivo(nombre_usuario);
+    linked_list_peeker(publicaciones);
 }
 
 int main(int argc, char const *argv[])
