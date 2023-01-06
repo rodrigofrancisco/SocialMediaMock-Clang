@@ -53,9 +53,11 @@ bool crear_almacenamiento_de_usuario(Usuario usuario);
 bool buscar_usuario_en_archivo(Credenciales credenciales);
 bool eliminar_en_archivo(char nombre_archivo[], int id);
 bool escribir_publicacion_en_archivo(char nombre_usuario[], Publicacion publicacion);
+Publicacion* leer_publicaciones_en_archivo(char nombre_usuario[]);
 
 bool crear_cuenta();
 char* iniciar_sesion();
+void manejar_sesion();
 bool crear_publicacion(char nombre_usuario[]);
 
 void mostrar_menu_principal() {
@@ -97,8 +99,6 @@ void mostrar_menu_usuario() {
 }
 
 OpcionPrincipal manejar_opciones_menu(OpcionPrincipal opcion) {
-    OpcionUsuario opcion_usuario;
-    char* usuario;
     switch (opcion) {
     case CREAR_CUENTA:
         if (crear_cuenta()) {
@@ -108,19 +108,7 @@ OpcionPrincipal manejar_opciones_menu(OpcionPrincipal opcion) {
         }
         break;
     case INICIAR_SESION:
-        usuario = iniciar_sesion();
-        printf("usuario de nuevo: %s", usuario);
-        if (usuario) {
-            do {
-                mostrar_menu_usuario();
-                int opcion_elegida; 
-                scanf("%d", &opcion_elegida);
-                opcion_usuario = opcion_menu_principal(opcion_elegida);
-                // TODO: Checar porque el usuario no se esta pasando bien desde iniciar_sesion()
-            } while (manejar_opciones_menu_usuario(opcion_usuario, "rodri") != SALIR_SESION);
-        } else {
-            printf("Problemas al iniciar sesion");
-        }
+        manejar_sesion(iniciar_sesion());
         break;
     case SALIR:
         printf("adios");
@@ -141,17 +129,17 @@ OpcionUsuario manejar_opciones_menu_usuario(OpcionUsuario opcion, char usuario[]
         break;
     case CREAR_PUBLICACION:
         if( crear_publicacion(usuario)) {
-            printf("Publicacion creada con exito");
+            printf("Publicacion creada con exito\n");
         } else {
-            printf("Algo fallo");
+            printf("Algo fallo\n");
         }
         break;
     case SALIR_SESION:
-        printf("Cerrando sesion");
+        printf("Cerrando sesion\n");
         break;
     case SALIR_PROGRAMA:
         // TODO: Check this
-        printf("adios");
+        printf("adios\n");
         exit(0);
         break;
     default:
@@ -244,11 +232,9 @@ bool buscar_usuario_en_archivo(Credenciales credenciales) {
 
 bool escribir_publicacion_en_archivo(char nombre_usuario[], Publicacion publicacion) {
     char path[200] = "";
-    strcat(path, "usuarios");
+    strcat(path, "usuarios/");
     strcat(path, nombre_usuario);
     strcat(path, "/publicaciones.txt");
-
-    printf("nombre archivo: %s", path);
 
     FILE *archivo;
     archivo = fopen(path, "ab");
@@ -261,6 +247,10 @@ bool escribir_publicacion_en_archivo(char nombre_usuario[], Publicacion publicac
     return true;
 }
 
+Publicacion* leer_publicaciones_en_archivo(char usuario[]) {
+
+}
+
 bool crear_cuenta() {
     Usuario usuario = obtener_informacion_usuario();
     // TODO: Validar que el usuario no se encuentre en la DB
@@ -269,8 +259,23 @@ bool crear_cuenta() {
 
 char* iniciar_sesion() {
     Credenciales crendeciales = obtener_credenciales_usuario();
-    // TODO: Preservar sesion/usuario si la autenticacion es exitosa
-    return buscar_usuario_en_archivo(crendeciales) ? crendeciales.nombre_usuario : NULL;
+    char* usuario = (char *)calloc(1, strlen(crendeciales.nombre_usuario) + 1);
+    strcpy(usuario, crendeciales.nombre_usuario);
+    return buscar_usuario_en_archivo(crendeciales) ? usuario : NULL;
+}
+
+void manejar_sesion(char* usuario) {
+    OpcionUsuario opcion_usuario;
+    if (usuario) {
+        do {
+            mostrar_menu_usuario();
+            int opcion_elegida; 
+            scanf("%d", &opcion_elegida);
+            opcion_usuario = opcion_menu_principal(opcion_elegida);
+        } while (manejar_opciones_menu_usuario(opcion_usuario, usuario) != SALIR_SESION);
+    } else {
+        printf("Problemas al iniciar sesion\n");
+    }
 }
 
 bool crear_publicacion(char nombre_usuario[]) {
