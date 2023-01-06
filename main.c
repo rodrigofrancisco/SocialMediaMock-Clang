@@ -51,13 +51,14 @@ Publicacion obtener_publicacion();
 bool escribir_usuario_en_archivo(Usuario usuario);
 bool crear_almacenamiento_de_usuario(Usuario usuario);
 bool buscar_usuario_en_archivo(Credenciales credenciales);
-bool eliminar_en_archivo(char nombre_archivo[], int id);
+bool buscar_nombre_usuario_en_archivo(char nombre_usuario[]);
 bool escribir_publicacion_en_archivo(char nombre_usuario[], Publicacion publicacion);
 Publicacion* leer_publicaciones_en_archivo(char nombre_usuario[]);
+bool eliminar_publicacion_en_archivo(char nombre_usuario[], int id); 
 
 bool crear_cuenta();
 char* iniciar_sesion();
-void manejar_sesion();
+void manejar_sesion(char* usuario);
 bool crear_publicacion(char nombre_usuario[]);
 
 void mostrar_menu_principal() {
@@ -102,20 +103,20 @@ OpcionPrincipal manejar_opciones_menu(OpcionPrincipal opcion) {
     switch (opcion) {
     case CREAR_CUENTA:
         if (crear_cuenta()) {
-            printf("Cuenta creada con exito");
+            printf("Cuenta creada con exito\n");
         } else {
-            printf("Problemas al crear la cuenta");
+            printf("Problemas al crear la cuenta\n");
         }
         break;
     case INICIAR_SESION:
         manejar_sesion(iniciar_sesion());
         break;
     case SALIR:
-        printf("adios");
+        printf("adios\n");
         exit(0);
         break;
     default:
-        printf("Opcion invalida");
+        printf("Opcion invalida\n");
         break;
     }
 
@@ -230,6 +231,24 @@ bool buscar_usuario_en_archivo(Credenciales credenciales) {
     return false;
 }
 
+bool buscar_nombre_usuario_en_archivo(char nombre_usuario[]) {
+    char nombre_archivo[] = "usuarios.txt";
+    FILE *archivo_usuarios;
+    archivo_usuarios = fopen(nombre_archivo, "rb");
+    if (archivo_usuarios == NULL) {
+        return false;
+    }
+
+    Usuario usuario_it;
+
+    while (fread(&usuario_it, sizeof(usuario_it), 1, archivo_usuarios)) {
+        if (strcmp(nombre_usuario, usuario_it.nombre_usuario) == 0) {
+            return true;
+        }  
+    }  
+    return false;
+}
+
 bool escribir_publicacion_en_archivo(char nombre_usuario[], Publicacion publicacion) {
     char path[200] = "";
     strcat(path, "usuarios/");
@@ -247,14 +266,64 @@ bool escribir_publicacion_en_archivo(char nombre_usuario[], Publicacion publicac
     return true;
 }
 
-Publicacion* leer_publicaciones_en_archivo(char usuario[]) {
+Publicacion* leer_publicaciones_en_archivo(char nombre_usuario[]) {
+    char path[200] = "";
+    strcat(path, "usuarios/");
+    strcat(path, nombre_usuario);
+    strcat(path, "/publicaciones.txt");
 
+    FILE *archivo;
+    archivo = fopen(path, "rb");
+    if (archivo == NULL) {
+        return NULL;
+    }
+
+    Publicacion* publicaciones;
+    Publicacion publicacion_it;
+    while (fread(&publicacion_it, sizeof(publicacion_it), 1, archivo)) {
+        //TODO: Append in array build with dynamic memory 
+    }  
+
+    fclose(archivo);
+    return NULL;
+}
+
+bool eliminar_publicacion_en_archivo(char nombre_usuario[], int id) {
+    char path[200] = "";
+    strcat(path, "usuarios/");
+    strcat(path, nombre_usuario);
+    strcat(path, "/publicaciones.txt");
+
+    FILE *archivo, *archivo_tmp;
+    archivo = fopen(path, "rb");
+    if (archivo == NULL) {
+        return NULL;
+    }
+
+    archivo_tmp = fopen(path, "wb");
+    if (archivo_tmp == NULL) {
+        return NULL;
+    }
+
+    Publicacion publicacion_it;
+    while (fread(&publicacion_it, sizeof(publicacion_it), 1, archivo)) {
+        if (id != publicacion_it.id) {
+            fwrite(&publicacion_it, sizeof(publicacion_it), 1, archivo_tmp);
+        }
+    }  
+
+    fclose(archivo);
+    fclose(archivo_tmp);
+    return true;
 }
 
 bool crear_cuenta() {
     Usuario usuario = obtener_informacion_usuario();
-    // TODO: Validar que el usuario no se encuentre en la DB
-    return escribir_usuario_en_archivo(usuario) && crear_almacenamiento_de_usuario(usuario);
+    if (!buscar_nombre_usuario_en_archivo(usuario.nombre_usuario)) {
+        return escribir_usuario_en_archivo(usuario) && crear_almacenamiento_de_usuario(usuario);
+    } else {
+        return false;
+    }
 }
 
 char* iniciar_sesion() {
@@ -286,8 +355,7 @@ bool crear_publicacion(char nombre_usuario[]) {
 int main(int argc, char const *argv[])
 {
     OpcionPrincipal opcion;
-    do
-    {
+    do {
         int opcion_elegida;
         mostrar_menu_principal();
         scanf("%d", &opcion_elegida);
