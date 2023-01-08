@@ -30,6 +30,7 @@ enum OpcionPrincipal {
 enum OpcionUsuario {
     VER_PUBLICACION,
     CREAR_PUBLICACION,
+    ELIMINAR_PUBLICACION,
     SALIR_SESION,
     SALIR_PROGRAMA
 } typedef OpcionUsuario;
@@ -129,6 +130,7 @@ OpcionUsuario manejar_opciones_menu_usuario(OpcionUsuario opcion, char usuario[]
 Usuario obtener_informacion_usuario();
 Credenciales obtener_credenciales_usuario();
 Publicacion obtener_publicacion();
+int obtener_pos_publicacion();
 
 bool escribir_usuario_en_archivo(Usuario usuario);
 bool crear_almacenamiento_de_usuario(Usuario usuario);
@@ -143,6 +145,7 @@ char* iniciar_sesion();
 void manejar_sesion(char* usuario);
 bool crear_publicacion(char nombre_usuario[]);
 void obtener_publicaciones_usuario(char nombre_usuario[]);
+bool eliminar_publicacion(char nombre[]);
 
 void mostrar_menu_principal() {
     printf("\nBIENVENIDO A FWIFFER\n\n");
@@ -166,8 +169,9 @@ OpcionUsuario opcion_menu_usuario(int opcion) {
     switch (opcion) {
     case 1: return VER_PUBLICACION;
     case 2: return CREAR_PUBLICACION;
-    case 3: return SALIR_SESION;    
-    case 4: return SALIR_PROGRAMA;    
+    case 3: return ELIMINAR_PUBLICACION;
+    case 4: return SALIR_SESION;    
+    case 5: return SALIR_PROGRAMA;    
     default: return -1;
     }
 }
@@ -177,8 +181,9 @@ void mostrar_menu_usuario() {
     printf("******\n");
     printf("\n1....IMPRIMIR TODAS LAS PUBLICACIONES");
     printf("\n2....INGRESAR NUEVA PUBLICACION");
-    printf("\n3....SALIR DE LA SESION\n\n");
-    printf("4....SALIR\n\n");
+    printf("\n3....ELIMINAR PUBLICACION");
+    printf("\n4....SALIR DE LA SESION\n\n");
+    printf("5....SALIR\n\n");
     printf(" INGRESAR ELECCION..");
 }
 
@@ -214,6 +219,13 @@ OpcionUsuario manejar_opciones_menu_usuario(OpcionUsuario opcion, char usuario[]
     case CREAR_PUBLICACION:
         if(crear_publicacion(usuario)) {
             printf("Publicacion creada con exito\n");
+        } else {
+            printf("Algo fallo\n");
+        }
+        break;
+    case ELIMINAR_PUBLICACION:
+        if(eliminar_publicacion(usuario)) {
+            printf("Publicacion eliminada con exito\n");
         } else {
             printf("Algo fallo\n");
         }
@@ -270,6 +282,14 @@ Publicacion obtener_publicacion() {
     scanf(" %[^\n]s", publicacion.texto);
 
     return publicacion;
+}
+
+int obtener_pos_publicacion() {
+    int pos;
+    printf("\nINGRESE LO QUE DESEA ELIMINAR..\t");
+    scanf(" %d", &pos);
+
+    return pos;
 }
 
 bool escribir_usuario_en_archivo(Usuario usuario) {
@@ -381,19 +401,19 @@ bool eliminar_publicacion_en_archivo(char nombre_usuario[], int pos) {
     strcat(path, "/publicaciones.txt");
 
     strcpy(path_tmp, path);
-    strcat(path, ".copy");
+    strcat(path_tmp, ".copy");
 
     FILE *archivo, *archivo_tmp;
     archivo = fopen(path, "rb");
     if (archivo == NULL) {
-        return NULL;
+        return false;
     }
 
     archivo_tmp = fopen(path_tmp, "wb");
     if (archivo_tmp == NULL) {
-        return NULL;
+        return false;
     }
-
+    
     Publicacion publicacion_it;
     int it = 0;
     while (fread(&publicacion_it, sizeof(publicacion_it), 1, archivo)) {
@@ -450,6 +470,11 @@ bool crear_publicacion(char nombre_usuario[]) {
 void obtener_publicaciones_usuario(char nombre_usuario[]) {
     LinkedList* publicaciones = leer_publicaciones_en_archivo(nombre_usuario);
     linked_list_peeker(publicaciones);
+}
+
+bool eliminar_publicacion(char nombre_usuario[]) {
+    int pos = obtener_pos_publicacion();
+    return eliminar_publicacion_en_archivo(nombre_usuario, pos);
 }
 
 int main(int argc, char const *argv[])
