@@ -6,12 +6,10 @@
 #include <unistd.h>
 
 struct Publicacion {
-    int id;
     char texto[100];
 } typedef Publicacion;
 
-struct Usuario
-{
+struct Usuario {
     char nombre[50];
     char nombre_usuario[50];
     char contrasena[50];
@@ -112,9 +110,11 @@ bool linked_list_is_empty(LinkedList* this) {
 void linked_list_peeker(LinkedList* this) {
     if( linked_list_is_empty(this) ) return;
     Node* iterator = this->first;
+    int it = 0;
     while( iterator != NULL ) {
-        printf("publicacion: %s", iterator->data.texto);
+        printf("publicacion # %d: %s\n", it + 1, iterator->data.texto);
         iterator = iterator->next;
+        it++;
     }
 }
 
@@ -212,7 +212,7 @@ OpcionUsuario manejar_opciones_menu_usuario(OpcionUsuario opcion, char usuario[]
         obtener_publicaciones_usuario(usuario);
         break;
     case CREAR_PUBLICACION:
-        if( crear_publicacion(usuario)) {
+        if(crear_publicacion(usuario)) {
             printf("Publicacion creada con exito\n");
         } else {
             printf("Algo fallo\n");
@@ -269,8 +269,6 @@ Publicacion obtener_publicacion() {
     printf("\nINGRESE LO QUE DESEA PUBLICAR..\t");
     scanf(" %[^\n]s", publicacion.texto);
 
-    publicacion.id = 1;
-
     return publicacion;
 }
 
@@ -311,6 +309,7 @@ bool buscar_usuario_en_archivo(Credenciales credenciales) {
             return true;
         }  
     }  
+    fclose(archivo_usuarios);
     return false;
 }
 
@@ -329,6 +328,8 @@ bool buscar_nombre_usuario_en_archivo(char nombre_usuario[]) {
             return true;
         }  
     }  
+
+    fclose(archivo_usuarios);
     return false;
 }
 
@@ -361,7 +362,7 @@ LinkedList* leer_publicaciones_en_archivo(char nombre_usuario[]) {
         return NULL;
     }
 
-    LinkedList* publicaciones = linked_list_constructor();;
+    LinkedList* publicaciones = linked_list_constructor();
     Publicacion publicacion_it;
     while (fread(&publicacion_it, sizeof(publicacion_it), 1, archivo)) {
         linked_list_insert(publicaciones, publicacion_it);
@@ -371,11 +372,16 @@ LinkedList* leer_publicaciones_en_archivo(char nombre_usuario[]) {
     return publicaciones;
 }
 
-bool eliminar_publicacion_en_archivo(char nombre_usuario[], int id) {
+bool eliminar_publicacion_en_archivo(char nombre_usuario[], int pos) {
     char path[200] = "";
+    char path_tmp[200] = "";
     strcat(path, "usuarios/");
     strcat(path, nombre_usuario);
+    
     strcat(path, "/publicaciones.txt");
+
+    strcpy(path_tmp, path);
+    strcat(path, ".copy");
 
     FILE *archivo, *archivo_tmp;
     archivo = fopen(path, "rb");
@@ -383,20 +389,26 @@ bool eliminar_publicacion_en_archivo(char nombre_usuario[], int id) {
         return NULL;
     }
 
-    archivo_tmp = fopen(path, "wb");
+    archivo_tmp = fopen(path_tmp, "wb");
     if (archivo_tmp == NULL) {
         return NULL;
     }
 
     Publicacion publicacion_it;
+    int it = 0;
     while (fread(&publicacion_it, sizeof(publicacion_it), 1, archivo)) {
-        if (id != publicacion_it.id) {
+        if (it != pos) {
             fwrite(&publicacion_it, sizeof(publicacion_it), 1, archivo_tmp);
         }
+        it++;
     }  
 
     fclose(archivo);
     fclose(archivo_tmp);
+
+    remove(path);
+	rename(path_tmp, path);
+
     return true;
 }
 
