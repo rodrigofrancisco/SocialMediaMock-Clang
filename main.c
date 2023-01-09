@@ -342,9 +342,7 @@ bool escribir_usuario_en_archivo(Usuario usuario) {
 }
 
 bool crear_almacenamiento_de_usuario(Usuario usuario) {
-    char path[200] = "";
-    strcat(path, "usuarios/");
-    strcat(path, usuario.nombre_usuario);
+    char* path = construir_direccion_usuario(usuario.nombre_usuario); 
     mkdir("usuarios");
     return !mkdir(path);
 }
@@ -390,10 +388,7 @@ bool buscar_nombre_usuario_en_archivo(char nombre_usuario[]) {
 }
 
 bool escribir_publicacion_en_archivo(char nombre_usuario[], Publicacion publicacion) {
-    char path[200] = "";
-    strcat(path, "usuarios/");
-    strcat(path, nombre_usuario);
-    strcat(path, "/publicaciones.txt");
+    char* path = construir_direccion_usuario_publicaciones(nombre_usuario); 
 
     FILE *archivo;
     archivo = fopen(path, "ab");
@@ -407,10 +402,7 @@ bool escribir_publicacion_en_archivo(char nombre_usuario[], Publicacion publicac
 }
 
 LinkedList* leer_publicaciones_en_archivo(char nombre_usuario[]) {
-    char path[200] = "";
-    strcat(path, "usuarios/");
-    strcat(path, nombre_usuario);
-    strcat(path, "/publicaciones.txt");
+    char* path = construir_direccion_usuario_publicaciones(nombre_usuario);
 
     FILE *archivo;
     archivo = fopen(path, "rb");
@@ -429,14 +421,9 @@ LinkedList* leer_publicaciones_en_archivo(char nombre_usuario[]) {
 }
 
 bool eliminar_publicacion_en_archivo(char nombre_usuario[], int pos) {
-    char path[200] = "";
-    char path_tmp[200] = "";
-    strcat(path, "usuarios/");
-    strcat(path, nombre_usuario);
-    
-    strcat(path, "/publicaciones.txt");
+    char* path = construir_direccion_usuario_publicaciones(nombre_usuario);
+    char* path_tmp = construir_direccion_usuario_publicaciones(nombre_usuario);
 
-    strcpy(path_tmp, path);
     strcat(path_tmp, ".copy");
 
     FILE *archivo, *archivo_tmp;
