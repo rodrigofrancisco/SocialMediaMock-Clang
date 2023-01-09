@@ -114,7 +114,10 @@ bool linked_list_is_empty(LinkedList* this) {
 }
 
 void linked_list_peeker(LinkedList* this) {
-    if( linked_list_is_empty(this) ) return;
+    if( this == NULL || linked_list_is_empty(this) ) {
+        printf("No hay publicaciones");
+        return;
+    } 
     Node* iterator = this->first;
     int it = 0;
     while( iterator != NULL ) {
@@ -136,9 +139,12 @@ Usuario obtener_informacion_usuario();
 Credenciales obtener_credenciales_usuario();
 Publicacion obtener_publicacion();
 int obtener_pos_publicacion();
+Amigo obtener_nombre_usuario_amigo();
 
 char* construir_direccion_usuario(char usuario[]);
 char* construir_direccion_usuario_publicaciones(char usuario[]);
+char* construir_direccion_usuario_solicitados(char usuario[]);
+char* construir_direccion_usuario_solicitudes(char usuario[]);
 bool escribir_usuario_en_archivo(Usuario usuario);
 bool crear_almacenamiento_de_usuario(Usuario usuario);
 bool buscar_usuario_en_archivo(Credenciales credenciales);
@@ -146,7 +152,7 @@ bool buscar_nombre_usuario_en_archivo(char nombre_usuario[]);
 bool escribir_publicacion_en_archivo(char nombre_usuario[], Publicacion publicacion);
 LinkedList* leer_publicaciones_en_archivo(char nombre_usuario[]);
 bool eliminar_publicacion_en_archivo(char nombre_usuario[], int id); 
-bool crear_solicitud_amigo_en_archivo(); // TODO: Add parameters
+bool crear_solicitud_amigo_en_archivo(char nombre_usuario[], Amigo amigo);
 
 bool crear_cuenta();
 char* iniciar_sesion();
@@ -155,7 +161,7 @@ bool crear_publicacion(char nombre_usuario[]);
 void obtener_publicaciones_usuario(char nombre_usuario[]);
 bool eliminar_publicacion(char nombre_usuario[]);
 
-void agregar_amigo(char nombre_usuario[]);
+bool agregar_amigo(char nombre_usuario[]);
 void ver_amigos(char nombre_usuario[]);
 void eliminar_amigo(char nombre_usuario[]);
 void ver_solicitudes(char nombre_usuario[]);
@@ -308,6 +314,14 @@ int obtener_pos_publicacion() {
     return pos;
 }
 
+Amigo obtener_nombre_usuario_amigo() {
+    Amigo amigo;
+    printf("INGRESE EL NOMBRE DE USUARIO DEL AMIGO: \t");
+    scanf("%s", &amigo.nombre_usuario);
+
+    return amigo;
+}
+
 char* construir_direccion_usuario(char usuario[]) {
     char path[200] = "";
     strcat(path, "usuarios/");
@@ -322,6 +336,24 @@ char* construir_direccion_usuario(char usuario[]) {
 char* construir_direccion_usuario_publicaciones(char usuario[]) {
     char* path = construir_direccion_usuario(usuario);
     char publicaciones[] = "/publicaciones.txt";
+    char* publicaciones_pointer = (char*)calloc(1, strlen(path) + 1);
+    strcpy(publicaciones_pointer, publicaciones);
+    strcat(path, publicaciones_pointer);
+    return path;   
+}
+
+char* construir_direccion_usuario_solicitados(char usuario[]) {
+    char* path = construir_direccion_usuario(usuario);
+    char publicaciones[] = "/solicitados.txt";
+    char* publicaciones_pointer = (char*)calloc(1, strlen(path) + 1);
+    strcpy(publicaciones_pointer, publicaciones);
+    strcat(path, publicaciones_pointer);
+    return path;   
+}
+
+char* construir_direccion_usuario_solicitudes(char usuario[]) {
+    char* path = construir_direccion_usuario(usuario);
+    char publicaciones[] = "/solicitudes.txt";
     char* publicaciones_pointer = (char*)calloc(1, strlen(path) + 1);
     strcpy(publicaciones_pointer, publicaciones);
     strcat(path, publicaciones_pointer);
@@ -439,9 +471,12 @@ bool eliminar_publicacion_en_archivo(char nombre_usuario[], int pos) {
 
     Publicacion publicacion_it;
     int it = 0;
+    bool deleted_sucessfully = false;
     while (fread(&publicacion_it, sizeof(publicacion_it), 1, archivo)) {
-        if (it != pos) {
+        if (it != (pos - 1)) {
             fwrite(&publicacion_it, sizeof(publicacion_it), 1, archivo_tmp);
+        } else {
+            deleted_sucessfully = true;
         }
         it++;
     }  
@@ -451,6 +486,33 @@ bool eliminar_publicacion_en_archivo(char nombre_usuario[], int pos) {
 
     remove(path);
 	rename(path_tmp, path);
+
+    return deleted_sucessfully;
+}
+
+bool crear_solicitud_amigo_en_archivo(char nombre_usuario[], Amigo amigo) {
+    char* path = construir_direccion_usuario_solicitados(nombre_usuario); 
+    char* path_amigo = construir_direccion_usuario_solicitudes(amigo.nombre_usuario); 
+
+    FILE *archivo;
+    archivo = fopen(path, "ab");
+    if (archivo == NULL) {
+        return false;
+    }
+    
+    fwrite(&amigo, sizeof(amigo), 1, archivo);
+    fclose(archivo);
+
+    archivo = fopen(path_amigo, "ab");
+    if (archivo == NULL) {
+        return false;
+    }
+
+    Amigo amigo_usuario;
+    strcpy(amigo.nombre_usuario, nombre_usuario);
+    
+    fwrite(&amigo_usuario, sizeof(amigo_usuario), 1, archivo);
+    fclose(archivo);
 
     return true;
 }
@@ -500,9 +562,16 @@ bool eliminar_publicacion(char nombre_usuario[]) {
     return eliminar_publicacion_en_archivo(nombre_usuario, pos);
 }
 
-int main(int argc, char const *argv[])
-{
-    printf("\nConstruir usuario %s\n\n", construir_direccion_usuario_publicaciones("Rodri"));
+bool agregar_amigo(char nombre_usuario[]) {
+    Amigo amigo = obtener_nombre_usuario_amigo();
+    if (!buscar_nombre_usuario_en_archivo(amigo.nombre_usuario)) {
+        return crear_solicitud_amigo_en_archivo(nombre_usuario, amigo);
+    } else {
+        return false;
+    }
+}
+
+int main(int argc, char const *argv[]) {
     OpcionPrincipal opcion;
     do {
         int opcion_elegida;
