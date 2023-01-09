@@ -33,6 +33,9 @@ enum OpcionUsuario {
     AGREGAR_AMIGO,
     VER_SOLICITUDES,
     ACEPTAR_SOLICITUD,
+    VER_AMIGOS,
+    VER_PUBLICACIONES_AMIGOS,
+    VER_AMIGOS_DE_AMIGO,
     SALIR_SESION,
     SALIR_PROGRAMA
 } typedef OpcionUsuario;
@@ -51,6 +54,8 @@ Publicacion obtener_publicacion();
 int obtener_pos_publicacion();
 Amigo obtener_nombre_usuario_amigo();
 Amigo obtener_amigo_solicitud();
+Amigo obtener_amigo_para_ver_publicaciones();
+Amigo obtener_amigo_para_ver_amigos();
 
 char* construir_direccion_usuario(char usuario[]);
 char* construir_direccion_usuario_publicaciones(char usuario[]);
@@ -60,6 +65,7 @@ bool escribir_usuario_en_archivo(Usuario usuario);
 bool crear_almacenamiento_de_usuario(Usuario usuario);
 bool buscar_usuario_en_archivo(Credenciales credenciales);
 bool buscar_nombre_usuario_en_archivo(char nombre_usuario[]);
+bool es_amigo_en_archivo(char nombre_usuario[], Amigo amigo);
 bool escribir_publicacion_en_archivo(char nombre_usuario[], Publicacion publicacion);
 LinkedList* leer_publicaciones_en_archivo(char nombre_usuario[]);
 bool eliminar_publicacion_en_archivo(char nombre_usuario[], int id); 
@@ -81,9 +87,9 @@ bool agregar_amigo(char nombre_usuario[]);
 void ver_amigos(char nombre_usuario[]);
 void ver_solicitudes(char nombre_usuario[]);
 bool aceptar_solicitud(char nombre_usuario[]);
-void eliminar_amigo(char nombre_usuario[]);
 void ver_publicaciones_amigos(char nombre_usuario[]);
 void ver_amigos_de_amigo(char nombre_usuario[]);
+void eliminar_amigo(char nombre_usuario[]);
 
 void mostrar_menu_principal() {
     printf("\nBIENVENIDO A FWIFFER\n\n");
@@ -111,8 +117,11 @@ OpcionUsuario opcion_menu_usuario(int opcion) {
     case 4: return AGREGAR_AMIGO;
     case 5: return VER_SOLICITUDES;
     case 6: return ACEPTAR_SOLICITUD;
-    case 7: return SALIR_SESION;    
-    case 8: return SALIR_PROGRAMA;    
+    case 7: return VER_AMIGOS;
+    case 8: return VER_PUBLICACIONES_AMIGOS;
+    case 9: return VER_AMIGOS_DE_AMIGO;
+    case 10: return SALIR_SESION;    
+    case 11: return SALIR_PROGRAMA;    
     default: return -1;
     }
 }
@@ -126,8 +135,11 @@ void mostrar_menu_usuario() {
     printf("\n4....AGREGAR AMIGO");
     printf("\n5....VER SOLICITUDES");
     printf("\n6....ACEPTAR SOLICITUD");
-    printf("\n7....SALIR DE LA SESION\n\n");
-    printf("8....SALIR\n\n");
+    printf("\n7....VER AMIGOS");
+    printf("\n8....VER PUBLICACIONES AMIGOS");
+    printf("\n9....VER AMIGOS DE AMIGO");
+    printf("\n10....SALIR DE LA SESION\n\n");
+    printf("11....SALIR\n\n");
     printf(" INGRESAR ELECCION..");
 }
 
@@ -191,6 +203,15 @@ OpcionUsuario manejar_opciones_menu_usuario(OpcionUsuario opcion, char usuario[]
             printf("Algo fallo al aceptar solicitud\n");
         }
         break;  
+    case VER_AMIGOS:
+        ver_amigos(usuario);
+        break;  
+    case VER_PUBLICACIONES_AMIGOS:
+        ver_publicaciones_amigos(usuario);
+        break;
+    case VER_AMIGOS_DE_AMIGO:
+        ver_amigos_de_amigo(usuario);
+        break;
     case SALIR_SESION:
         printf("Cerrando sesion\n");
         break;
@@ -264,6 +285,22 @@ Amigo obtener_nombre_usuario_amigo() {
 Amigo obtener_amigo_solicitud() {
     Amigo amigo;
     printf("INGRESE EL NOMBRE DE USUARIO DEL AMIGO a aprobar: \t");
+    scanf("%s", &amigo.nombre_usuario);
+
+    return amigo;
+}
+
+Amigo obtener_amigo_para_ver_publicaciones() {
+    Amigo amigo;
+    printf("DE QUE AMIGO QUIERES VER LAS PUBLICACIONES: \t");
+    scanf("%s", &amigo.nombre_usuario);
+
+    return amigo;
+}
+
+Amigo obtener_amigo_para_ver_amigos() {
+    Amigo amigo;
+    printf("DE QUE AMIGO QUIERES VER SUS AMIGOS: \t");
     scanf("%s", &amigo.nombre_usuario);
 
     return amigo;
@@ -365,6 +402,27 @@ bool buscar_nombre_usuario_en_archivo(char nombre_usuario[]) {
     fclose(archivo_usuarios);
     return false;
 }
+
+bool es_amigo_en_archivo(char nombre_usuario[], Amigo amigo) {
+    char* path = construir_direccion_usuario_amigos(nombre_usuario);
+    FILE *archivo_usuarios;
+    archivo_usuarios = fopen(path, "rb");
+    if (archivo_usuarios == NULL) {
+        return false;
+    }
+
+    Amigo amigo_it;
+
+    while (fread(&amigo_it, sizeof(amigo_it), 1, archivo_usuarios)) {
+        if (strcmp(amigo.nombre_usuario, amigo_it.nombre_usuario) == 0) {
+            return true;
+        }  
+    }  
+
+    fclose(archivo_usuarios);
+    return false;
+}
+
 
 bool escribir_publicacion_en_archivo(char nombre_usuario[], Publicacion publicacion) {
     char* path = construir_direccion_usuario_publicaciones(nombre_usuario); 
@@ -512,18 +570,15 @@ LinkedList_Friend* ver_amigos_en_archivo(char nombre_usuario[]) {
 }
 
 bool agregar_amigo_en_archivo(char nombre_usuario[], Amigo amigo) {
-    char* path_amigo = construir_direccion_usuario_amigos(amigo.nombre_usuario); 
+    char* path = construir_direccion_usuario_amigos(nombre_usuario); 
 
     FILE *archivo;
-    archivo = fopen(path_amigo, "ab");
+    archivo = fopen(path, "ab");
     if (archivo == NULL) {
         return false;
     }
 
-    Amigo amigo_usuario;
-    strcpy(amigo.nombre_usuario, nombre_usuario);
-    
-    fwrite(&amigo_usuario, sizeof(amigo_usuario), 1, archivo);
+    fwrite(&amigo, sizeof(amigo), 1, archivo);
     fclose(archivo);
 
     return true;
@@ -626,6 +681,24 @@ bool aceptar_solicitud(char nombre_usuario[]) {
     return aceptar_solicitud_en_archivos(nombre_usuario, amigo);
 }
 
+void ver_publicaciones_amigos(char nombre_usuario[]) {
+    Amigo amigo = obtener_amigo_para_ver_publicaciones();
+    if (es_amigo_en_archivo(nombre_usuario, amigo)) {
+        obtener_publicaciones_usuario(amigo.nombre_usuario);
+    } else {
+        printf("Algo salio mal, revisa la amistad\n");
+    }
+}
+
+void ver_amigos_de_amigo(char nombre_usuario[]) {
+    Amigo amigo = obtener_amigo_para_ver_amigos();
+    if (es_amigo_en_archivo(nombre_usuario, amigo)) {
+        ver_amigos(amigo.nombre_usuario);
+    } else {
+        printf("Algo salio mal, revisa la amistad\n");
+    }
+}
+
 int main(int argc, char const *argv[]) {
     OpcionPrincipal opcion;
     do {
@@ -637,5 +710,3 @@ int main(int argc, char const *argv[]) {
     
     return 0;
 }
-
-
