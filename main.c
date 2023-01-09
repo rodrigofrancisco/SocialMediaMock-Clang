@@ -32,6 +32,7 @@ enum OpcionUsuario {
     ELIMINAR_PUBLICACION,
     AGREGAR_AMIGO,
     VER_SOLICITUDES,
+    ACEPTAR_SOLICITUD,
     SALIR_SESION,
     SALIR_PROGRAMA
 } typedef OpcionUsuario;
@@ -79,7 +80,7 @@ bool eliminar_publicacion(char nombre_usuario[]);
 bool agregar_amigo(char nombre_usuario[]);
 void ver_amigos(char nombre_usuario[]);
 void ver_solicitudes(char nombre_usuario[]);
-void aceptar_solicitud(char nombre_usuario[]);
+bool aceptar_solicitud(char nombre_usuario[]);
 void eliminar_amigo(char nombre_usuario[]);
 void ver_publicaciones_amigos(char nombre_usuario[]);
 void ver_amigos_de_amigo(char nombre_usuario[]);
@@ -109,8 +110,9 @@ OpcionUsuario opcion_menu_usuario(int opcion) {
     case 3: return ELIMINAR_PUBLICACION;
     case 4: return AGREGAR_AMIGO;
     case 5: return VER_SOLICITUDES;
-    case 6: return SALIR_SESION;    
-    case 7: return SALIR_PROGRAMA;    
+    case 6: return ACEPTAR_SOLICITUD;
+    case 7: return SALIR_SESION;    
+    case 8: return SALIR_PROGRAMA;    
     default: return -1;
     }
 }
@@ -123,8 +125,9 @@ void mostrar_menu_usuario() {
     printf("\n3....ELIMINAR PUBLICACION");
     printf("\n4....AGREGAR AMIGO");
     printf("\n5....VER SOLICITUDES");
-    printf("\n6....SALIR DE LA SESION\n\n");
-    printf("7....SALIR\n\n");
+    printf("\n6....ACEPTAR SOLICITUD");
+    printf("\n7....SALIR DE LA SESION\n\n");
+    printf("8....SALIR\n\n");
     printf(" INGRESAR ELECCION..");
 }
 
@@ -180,6 +183,13 @@ OpcionUsuario manejar_opciones_menu_usuario(OpcionUsuario opcion, char usuario[]
         break; 
     case VER_SOLICITUDES:
         ver_solicitudes(usuario);
+        break;  
+    case ACEPTAR_SOLICITUD:
+        if(aceptar_solicitud(usuario)) {
+            printf("Solicitud aceptada\n");
+        } else {
+            printf("Algo fallo al aceptar solicitud\n");
+        }
         break;  
     case SALIR_SESION:
         printf("Cerrando sesion\n");
@@ -540,8 +550,11 @@ LinkedList_Friend* ver_solicitudes_en_archivo(char nombre_usuario[]) {
 }
 
 bool aceptar_solicitud_en_archivos(char nombre_usuario[], Amigo amigo) {
+    Amigo amigo_usuario;
+    strcpy(amigo_usuario.nombre_usuario, nombre_usuario);
     return eliminar_solicitud_amigo_en_archivo(nombre_usuario, amigo) &&
-           agregar_amigo_en_archivo(nombre_usuario, amigo);
+           agregar_amigo_en_archivo(nombre_usuario, amigo) &&
+           agregar_amigo_en_archivo(amigo.nombre_usuario, amigo_usuario);
 }
 
 bool crear_cuenta() {
@@ -608,9 +621,9 @@ void ver_solicitudes(char nombre_usuario[]) {
     linked_list_peeker_friend(amigos);
 }
 
-void aceptar_solicitud(char nombre_usuario[]) {
+bool aceptar_solicitud(char nombre_usuario[]) {
     Amigo amigo = obtener_amigo_solicitud();
-    aceptar_solicitud_en_archivos(nombre_usuario, amigo);
+    return aceptar_solicitud_en_archivos(nombre_usuario, amigo);
 }
 
 int main(int argc, char const *argv[]) {
