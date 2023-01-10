@@ -260,7 +260,6 @@ bool eliminar_solicitud_amigo_en_archivo(char nombre_usuario[], Amigo amigo) {
     return deleted_sucessfully;
 }
 
-
 LinkedList_Friend* ver_amigos_en_archivo(char* path) {
     FILE *archivo;
     archivo = fopen(path, "rb");
@@ -292,7 +291,6 @@ bool agregar_amigo_en_archivo(char nombre_usuario[], Amigo amigo) {
 
     return true;
 }
-
 
 LinkedList_Friend* ver_solicitudes_en_archivo(char* path) {
     FILE *archivo;

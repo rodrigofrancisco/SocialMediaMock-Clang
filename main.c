@@ -32,7 +32,6 @@ OpcionPrincipal manejar_opciones_menu(OpcionPrincipal opcion) {
     case SALIR: salir_programa(); break;
     default: opcion_invalida(); break;
     }
-
     return opcion;
 }
 
