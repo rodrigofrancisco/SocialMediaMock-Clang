@@ -29,13 +29,8 @@ OpcionPrincipal manejar_opciones_menu(OpcionPrincipal opcion) {
     switch (opcion) {
     case CREAR_CUENTA: crear_cuenta(); break;
     case INICIAR_SESION: manejar_sesion(iniciar_sesion()); break;
-    case SALIR:
-        printf("adios\n");
-        exit(0);
-        break;
-    default:
-        printf("Opcion invalida\n");
-        break;
+    case SALIR: salir_programa(); break;
+    default: opcion_invalida(); break;
     }
 
     return opcion;
@@ -52,25 +47,19 @@ OpcionUsuario manejar_opciones_menu_usuario(OpcionUsuario opcion, char usuario[]
     case VER_AMIGOS: ver_amigos(usuario); break;  
     case VER_PUBLICACIONES_AMIGOS: ver_publicaciones_amigos(usuario); break;
     case VER_AMIGOS_DE_AMIGO: ver_amigos_de_amigo(usuario); break;
-    case SALIR_SESION:
-        printf("Cerrando sesion\n");
-        break;
-    case SALIR_PROGRAMA:
-        // TODO: Check this
-        printf("adios\n");
-        exit(0);
-        break;
-    default:
-        break;
+    case SALIR_SESION: cerrar_sesion(); break;
+    case SALIR_PROGRAMA: salir_programa(); break;
+    default: opcion_invalida(); break;
     }
     return opcion;
 }
 
 void crear_cuenta() {
     Usuario usuario = obtener_informacion_usuario();
+    char* path = construir_direccion_usuario(usuario.nombre_usuario); 
     if (!buscar_nombre_usuario_en_archivo(usuario.nombre_usuario)) {
         if(escribir_usuario_en_archivo(usuario) && 
-            crear_almacenamiento_de_usuario(usuario)) {
+            crear_almacenamiento_de_usuario(path)) {
             printf("Cuenta creada con exito\n");
         }
     } else {
@@ -101,7 +90,8 @@ void manejar_sesion(char* usuario) {
 
 void crear_publicacion(char nombre_usuario[]) {
     Publicacion publicacion = obtener_publicacion();
-    if(escribir_publicacion_en_archivo(nombre_usuario, publicacion)) {
+    char* path = construir_direccion_usuario_publicaciones(nombre_usuario);
+    if(escribir_publicacion_en_archivo(path, publicacion)) {
         printf("Publicacion creada con exito\n");
     } else {
         printf("Algo fallo\n");
@@ -109,13 +99,15 @@ void crear_publicacion(char nombre_usuario[]) {
 }
 
 void obtener_publicaciones_usuario(char nombre_usuario[]) {
-    LinkedList* publicaciones = leer_publicaciones_en_archivo(nombre_usuario);
+    char* path = construir_direccion_usuario_publicaciones(nombre_usuario);
+    LinkedList* publicaciones = leer_publicaciones_en_archivo(path);
     linked_list_peeker(publicaciones);
 }
 
 void eliminar_publicacion(char nombre_usuario[]) {
     int pos = obtener_pos_publicacion();
-    if(eliminar_publicacion_en_archivo(nombre_usuario, pos)) {
+    char* path = construir_direccion_usuario_publicaciones(nombre_usuario);
+    if(eliminar_publicacion_en_archivo(path, pos)) {
         printf("Publicacion eliminada con exito\n");
     } else {
         printf("Algo fallo\n");
@@ -134,12 +126,14 @@ void agregar_amigo(char nombre_usuario[]) {
 }
 
 void ver_amigos(char nombre_usuario[]) {
-    LinkedList_Friend* amigos = ver_amigos_en_archivo(nombre_usuario);
+    char* path = construir_direccion_usuario_amigos(nombre_usuario);
+    LinkedList_Friend* amigos = ver_amigos_en_archivo(path);
     linked_list_peeker_friend(amigos);
 }
 
 void ver_solicitudes(char nombre_usuario[]) {
-    LinkedList_Friend* amigos = ver_solicitudes_en_archivo(nombre_usuario);
+    char* path = construir_direccion_usuario_solicitudes(nombre_usuario);
+    LinkedList_Friend* amigos = ver_solicitudes_en_archivo(path);
     linked_list_peeker_friend(amigos);
 }
 
@@ -154,7 +148,8 @@ void aceptar_solicitud(char nombre_usuario[]) {
 
 void ver_publicaciones_amigos(char nombre_usuario[]) {
     Amigo amigo = obtener_amigo_para_ver_publicaciones();
-    if (es_amigo_en_archivo(nombre_usuario, amigo)) {
+    char* path = construir_direccion_usuario_amigos(nombre_usuario);
+    if (es_amigo_en_archivo(path, amigo)) {
         obtener_publicaciones_usuario(amigo.nombre_usuario);
     } else {
         printf("Algo salio mal, revisa la amistad\n");
@@ -163,7 +158,8 @@ void ver_publicaciones_amigos(char nombre_usuario[]) {
 
 void ver_amigos_de_amigo(char nombre_usuario[]) {
     Amigo amigo = obtener_amigo_para_ver_amigos();
-    if (es_amigo_en_archivo(nombre_usuario, amigo)) {
+    char* path = construir_direccion_usuario_amigos(nombre_usuario);
+    if (es_amigo_en_archivo(path, amigo)) {
         ver_amigos(amigo.nombre_usuario);
     } else {
         printf("Algo salio mal, revisa la amistad\n");

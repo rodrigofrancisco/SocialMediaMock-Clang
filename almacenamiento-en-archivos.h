@@ -10,16 +10,16 @@ char* construir_direccion_usuario_amigos(char usuario[]);
 char* construir_direccion_usuario_solicitudes(char usuario[]);
 
 bool escribir_usuario_en_archivo(Usuario usuario);
-bool crear_almacenamiento_de_usuario(Usuario usuario);
+bool crear_almacenamiento_de_usuario(char* path);
 bool buscar_usuario_en_archivo(Credenciales credenciales);
 bool buscar_nombre_usuario_en_archivo(char nombre_usuario[]);
-bool es_amigo_en_archivo(char nombre_usuario[], Amigo amigo);
-bool escribir_publicacion_en_archivo(char nombre_usuario[], Publicacion publicacion);
-LinkedList* leer_publicaciones_en_archivo(char nombre_usuario[]);
-bool eliminar_publicacion_en_archivo(char nombre_usuario[], int id); 
+bool es_amigo_en_archivo(char* path, Amigo amigo);
+bool escribir_publicacion_en_archivo(char* path, Publicacion publicacion);
+LinkedList* leer_publicaciones_en_archivo(char* path);
+bool eliminar_publicacion_en_archivo(char* path, int id); 
 bool crear_solicitud_amigo_en_archivo(char nombre_usuario[], Amigo amigo);
 bool eliminar_solicitud_amigo_en_archivo(char nombre_usuario[], Amigo amigo);
-LinkedList_Friend* ver_amigos_en_archivo(char nombre_usuario[]);
+LinkedList_Friend* ver_amigos_en_archivo(char* path);
 bool agregar_amigo_en_archivo(char nombre_usuario[], Amigo amigo);
 LinkedList_Friend* ver_solicitudes_en_archivo(char nombre_usuario[]);
 bool aceptar_solicitud_en_archivos(char nombre_usuario[], Amigo amigo);
@@ -75,8 +75,7 @@ bool escribir_usuario_en_archivo(Usuario usuario) {
     return true;
 }
 
-bool crear_almacenamiento_de_usuario(Usuario usuario) {
-    char* path = construir_direccion_usuario(usuario.nombre_usuario); 
+bool crear_almacenamiento_de_usuario(char* path) {
     mkdir("usuarios");
     return !mkdir(path);
 }
@@ -121,8 +120,7 @@ bool buscar_nombre_usuario_en_archivo(char nombre_usuario[]) {
     return false;
 }
 
-bool es_amigo_en_archivo(char nombre_usuario[], Amigo amigo) {
-    char* path = construir_direccion_usuario_amigos(nombre_usuario);
+bool es_amigo_en_archivo(char* path, Amigo amigo) {
     FILE *archivo_usuarios;
     archivo_usuarios = fopen(path, "rb");
     if (archivo_usuarios == NULL) {
@@ -142,9 +140,7 @@ bool es_amigo_en_archivo(char nombre_usuario[], Amigo amigo) {
 }
 
 
-bool escribir_publicacion_en_archivo(char nombre_usuario[], Publicacion publicacion) {
-    char* path = construir_direccion_usuario_publicaciones(nombre_usuario); 
-
+bool escribir_publicacion_en_archivo(char* path, Publicacion publicacion) {
     FILE *archivo;
     archivo = fopen(path, "ab");
     if (archivo == NULL) {
@@ -156,9 +152,7 @@ bool escribir_publicacion_en_archivo(char nombre_usuario[], Publicacion publicac
     return true;
 }
 
-LinkedList* leer_publicaciones_en_archivo(char nombre_usuario[]) {
-    char* path = construir_direccion_usuario_publicaciones(nombre_usuario);
-
+LinkedList* leer_publicaciones_en_archivo(char* path) {
     FILE *archivo;
     archivo = fopen(path, "rb");
     if (archivo == NULL) {
@@ -175,9 +169,8 @@ LinkedList* leer_publicaciones_en_archivo(char nombre_usuario[]) {
     return publicaciones;
 }
 
-bool eliminar_publicacion_en_archivo(char nombre_usuario[], int pos) {
-    char* path = construir_direccion_usuario_publicaciones(nombre_usuario);
-    char* path_tmp = construir_direccion_usuario_publicaciones(nombre_usuario);
+bool eliminar_publicacion_en_archivo(char* path, int pos) {
+    char* path_tmp = strcpy(path_tmp, path);
 
     strcat(path_tmp, ".copy");
 
@@ -268,9 +261,7 @@ bool eliminar_solicitud_amigo_en_archivo(char nombre_usuario[], Amigo amigo) {
 }
 
 
-LinkedList_Friend* ver_amigos_en_archivo(char nombre_usuario[]) {
-    char* path = construir_direccion_usuario_amigos(nombre_usuario);
-
+LinkedList_Friend* ver_amigos_en_archivo(char* path) {
     FILE *archivo;
     archivo = fopen(path, "rb");
     if (archivo == NULL) {
@@ -303,9 +294,7 @@ bool agregar_amigo_en_archivo(char nombre_usuario[], Amigo amigo) {
 }
 
 
-LinkedList_Friend* ver_solicitudes_en_archivo(char nombre_usuario[]) {
-    char* path = construir_direccion_usuario_solicitudes(nombre_usuario);
-
+LinkedList_Friend* ver_solicitudes_en_archivo(char* path) {
     FILE *archivo;
     archivo = fopen(path, "rb");
     if (archivo == NULL) {

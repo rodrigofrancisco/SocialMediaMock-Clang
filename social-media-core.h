@@ -38,6 +38,9 @@ enum OpcionUsuario {
     SALIR_PROGRAMA
 } typedef OpcionUsuario;
 
+void salir_programa();
+void opcion_invalida();
+void cerrar_sesion();
 void mostrar_menu_principal();
 void mostrar_menu_usuario();
 OpcionPrincipal opcion_menu_principal(int opcion);
@@ -51,6 +54,19 @@ Amigo obtener_nombre_usuario_amigo();
 Amigo obtener_amigo_solicitud();
 Amigo obtener_amigo_para_ver_publicaciones();
 Amigo obtener_amigo_para_ver_amigos();
+
+void salir_programa() {
+    printf("adios\n");
+    exit(0);
+}
+
+void opcion_invalida() {
+    printf("Opcion invalida\n");
+}
+
+void cerrar_sesion() {
+    printf("Cerrando sesion\n");
+}
 
 void mostrar_menu_principal() {
     printf("\nBIENVENIDO A FWIFFER\n\n");
