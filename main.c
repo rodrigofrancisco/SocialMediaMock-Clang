@@ -101,6 +101,7 @@ void obtener_publicaciones_usuario(char nombre_usuario[]) {
     char* path = construir_direccion_usuario_publicaciones(nombre_usuario);
     LinkedList* publicaciones = leer_publicaciones_en_archivo(path);
     linked_list_peeker(publicaciones);
+    linked_list_destroyer(publicaciones);
 }
 
 void eliminar_publicacion(char nombre_usuario[]) {
@@ -128,12 +129,14 @@ void ver_amigos(char nombre_usuario[]) {
     char* path = construir_direccion_usuario_amigos(nombre_usuario);
     LinkedList_Friend* amigos = ver_amigos_en_archivo(path);
     linked_list_peeker_friend(amigos);
+    linked_list_destroyer_friend(amigos);
 }
 
 void ver_solicitudes(char nombre_usuario[]) {
     char* path = construir_direccion_usuario_solicitudes(nombre_usuario);
     LinkedList_Friend* amigos = ver_solicitudes_en_archivo(path);
     linked_list_peeker_friend(amigos);
+    linked_list_destroyer_friend(amigos);
 }
 
 void aceptar_solicitud(char nombre_usuario[]) {

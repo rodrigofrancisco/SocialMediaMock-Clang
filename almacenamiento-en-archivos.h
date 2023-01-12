@@ -170,8 +170,8 @@ LinkedList* leer_publicaciones_en_archivo(char* path) {
 }
 
 bool eliminar_publicacion_en_archivo(char* path, int pos) {
-    char* path_tmp = strcpy(path_tmp, path);
-
+    char path_tmp[200];
+    strcpy(path_tmp, path);
     strcat(path_tmp, ".copy");
 
     FILE *archivo, *archivo_tmp;
